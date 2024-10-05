@@ -83,45 +83,45 @@ fi
 log "Public IP Address: $EIP_ADDRESS"
 
 # Modify the PS1 variable to include the public IP address
-echo "export PS1=\"\\u@\\h ($EIP_ADDRESS) \\W\\\\$ \"" | tee -a /home/ubuntu/.bashrc
+echo "export PS1=\"\\u@\\h ($EIP_ADDRESS) \\W\\\\$ \"" | tee -a /home/ec2-user/.bashrc
 
 log "PS1 prompt changed to include the public IP address."
 
 # Clone the required repositories
 log "Cloning required repositories..."
 log "TBOT_DOCKER_BRANCH is set to: ${TBOT_DOCKER_BRANCH}"
-if ! mkdir -p /home/ubuntu/develop/github || \
-   ! git clone -b "${TBOT_DOCKER_BRANCH}" https://github.com/PlusGenie/ib-gateway-docker /home/ubuntu/develop/github/ib-gateway-docker; then
+if ! mkdir -p /home/ec2-user/develop/github || \
+   ! git clone -b "${TBOT_DOCKER_BRANCH}" https://github.com/PlusGenie/ib-gateway-docker /home/ec2-user/develop/github/ib-gateway-docker; then
     log "Failed to clone one or more repositories."
     exit 1
 fi
 
 # Copy and configure dotenv file
 log "Copying and configuring dotenv file..."
-if ! cp /home/ubuntu/develop/github/ib-gateway-docker/stable/tbot/dotenv /home/ubuntu/develop/github/ib-gateway-docker/.env; then
+if ! cp /home/ec2-user/develop/github/ib-gateway-docker/stable/tbot/dotenv /home/ec2-user/develop/github/ib-gateway-docker/.env; then
     log "Failed to copy dotenv file."
     exit 1
 fi
 
 log "Replacing variables in dotenv..."
 # Replace variables in dotenv
-if ! sed -i "s|^TWS_USERID=.*$|TWS_USERID=${TWS_USERID}|" /home/ubuntu/develop/github/ib-gateway-docker/.env || \
-   ! sed -i "s|^TWS_PASSWORD=.*$|TWS_PASSWORD=${TWS_PASSWORD}|" /home/ubuntu/develop/github/ib-gateway-docker/.env || \
-   ! sed -i "s|^TBOT_IBKR_IPADDR=.*$|TBOT_IBKR_IPADDR=${TBOT_IBKR_IPADDR}|" /home/ubuntu/develop/github/ib-gateway-docker/.env || \
-   ! sed -i "s|^NGROK_AUTH=.*$|NGROK_AUTH=${NGROK_AUTH}|" /home/ubuntu/develop/github/ib-gateway-docker/.env; then
+if ! sed -i "s|^TWS_USERID=.*$|TWS_USERID=${TWS_USERID}|" /home/ec2-user/develop/github/ib-gateway-docker/.env || \
+   ! sed -i "s|^TWS_PASSWORD=.*$|TWS_PASSWORD=${TWS_PASSWORD}|" /home/ec2-user/develop/github/ib-gateway-docker/.env || \
+   ! sed -i "s|^TBOT_IBKR_IPADDR=.*$|TBOT_IBKR_IPADDR=${TBOT_IBKR_IPADDR}|" /home/ec2-user/develop/github/ib-gateway-docker/.env || \
+   ! sed -i "s|^NGROK_AUTH=.*$|NGROK_AUTH=${NGROK_AUTH}|" /home/ec2-user/develop/github/ib-gateway-docker/.env; then
     log "Failed to replace variables in dotenv."
     exit 1
 fi
 
 # Replace TBOT_NGROK with the public IP
-if ! sed -i "s|^TBOT_NGROK=.*$|TBOT_NGROK=http://$EIP_ADDRESS:4040|" /home/ubuntu/develop/github/ib-gateway-docker/.env; then
+if ! sed -i "s|^TBOT_NGROK=.*$|TBOT_NGROK=http://$EIP_ADDRESS:4040|" /home/ec2-user/develop/github/ib-gateway-docker/.env; then
     log "Failed to set TBOT_NGROK in dotenv."
     exit 1
 fi
 
 # Building Docker Images
 log "Building Docker images using Docker Compose..."
-if ! cd /home/ubuntu/develop/github/ib-gateway-docker || ! docker-compose build; then
+if ! cd /home/ec2-user/develop/github/ib-gateway-docker || ! docker-compose build; then
     log "Failed to build Docker images with Docker Compose."
     exit 1
 fi
@@ -137,7 +137,7 @@ log "Docker containers started successfully."
 
 # Change the ownership of all files in the cloned repositories to 'ubuntu' user
 log "Changing ownership of files to 'ubuntu' user..."
-sudo chown -R ubuntu:ubuntu /home/ubuntu/develop || {
+sudo chown -R ubuntu:ubuntu /home/ec2-user/develop || {
     log "Failed to change file ownership to 'ubuntu' user."
     exit 1
 }
